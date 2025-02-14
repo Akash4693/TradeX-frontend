@@ -1,7 +1,8 @@
 import axios from "axios";
 import React, { useRef, useState } from "react";
 import { useEffect } from "react";
-import { server } from "../../server";
+import { server, ENDPOINT } from "../../server";
+
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { AiOutlineArrowRight, AiOutlineSend } from "react-icons/ai";
@@ -9,11 +10,20 @@ import styles from "../../styles/styles";
 import { TfiGallery } from "react-icons/tfi";
 import socketIO from "socket.io-client";
 import { format } from "timeago.js";
-const ENDPOINT = process.env.ENDPOINT;
-const socketId = socketIO(ENDPOINT, { transports: ["websocket"] });
+//const ENDPOINT = process.env.ENDPOINT;
+const socketId = socketIO("https://tradex-socket.onrender.com", {
+  autoConnect: true,
+  transports: ["websocket"],
+  reconnection: true,
+  reconnectionAttempts: Infinity,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
+  pingInterval: 10000,
+  pingTimeout: 10000,
+});
 
 const DashboardMessages = () => {
-  const { seller,isLoading } = useSelector((state) => state.seller);
+  const { seller, isLoading } = useSelector((state) => state.seller);
   const [conversations, setConversations] = useState([]);
   const [arrivalMessage, setArrivalMessage] = useState(null);
   const [currentChat, setCurrentChat] = useState();
@@ -27,6 +37,9 @@ const DashboardMessages = () => {
   const scrollRef = useRef(null);
 
   useEffect(() => {
+    socketId.on("connect", () => {
+      console.log("Connected to server");
+    });
     socketId.on("getMessage", (data) => {
       setArrivalMessage({
         sender: data.senderId,
@@ -260,7 +273,7 @@ const MessageList = ({
   setUserData,
   online,
   setActiveStatus,
-  isLoading
+  isLoading,
 }) => {
   console.log(data);
   const [user, setUser] = useState([]);
