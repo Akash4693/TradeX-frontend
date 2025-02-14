@@ -10,7 +10,16 @@ import { AiOutlineArrowRight, AiOutlineSend } from "react-icons/ai";
 import { TfiGallery } from "react-icons/tfi";
 import styles from "../styles/styles";
 const ENDPOINT = process.env.ENDPOINT;
-const socketId = socketIO(ENDPOINT, { transports: ["websocket"] });
+const socketId = socketIO("https://tradex-socket.onrender.com", {
+  autoConnect: true,
+  transports: ["websocket"],
+  reconnection: true,
+  reconnectionAttempts: Infinity,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
+  pingInterval: 10000,
+  pingTimeout: 10000,
+});
 
 const UserInbox = () => {
   const { user,loading } = useSelector((state) => state.user);
