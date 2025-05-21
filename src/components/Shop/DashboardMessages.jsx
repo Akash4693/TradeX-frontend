@@ -11,16 +11,6 @@ import { TfiGallery } from "react-icons/tfi";
 import socketIO from "socket.io-client";
 import { format } from "timeago.js";
 //const ENDPOINT = process.env.ENDPOINT;
-const socketId = socketIO("https://tradex-socket.onrender.com", {
-  autoConnect: true,
-  transports: ["websocket"],
-  reconnection: true,
-  reconnectionAttempts: Infinity,
-  reconnectionDelay: 1000,
-  reconnectionDelayMax: 5000,
-  pingInterval: 10000,
-  pingTimeout: 10000,
-});
 
 const DashboardMessages = () => {
   const { seller, isLoading } = useSelector((state) => state.seller);
@@ -36,18 +26,30 @@ const DashboardMessages = () => {
   const [open, setOpen] = useState(false);
   const scrollRef = useRef(null);
 
+  const socketId = socketIO("http://localhost:4000", {
+    autoConnect: true,
+    transports: ["websocket"],
+    reconnection: true,
+    reconnectionAttempts: Infinity,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000,
+    pingInterval: 10000,
+    pingTimeout: 10000,
+  });
+
   useEffect(() => {
     socketId.on("connect", () => {
       console.log("Connected to server");
     });
     socketId.on("getMessage", (data) => {
+      console.log("Connected to server", data);
       setArrivalMessage({
         sender: data.senderId,
         text: data.text,
         createdAt: Date.now(),
       });
     });
-  }, []);
+  }, [socketId]);
 
   useEffect(() => {
     arrivalMessage &&
@@ -328,7 +330,7 @@ const MessageList = ({
         <p className="text-[16px] text-[#000c]">
           {!isLoading && data?.lastMessageId !== user?._id
             ? "You:"
-            : user?.name.split(" ")[0] + ": "}{" "}
+            : user?.name?.split(" ")[0] + ": "}{" "}
           {data?.lastMessage}
         </p>
       </div>

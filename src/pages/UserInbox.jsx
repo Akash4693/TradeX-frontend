@@ -10,19 +10,9 @@ import { AiOutlineArrowRight, AiOutlineSend } from "react-icons/ai";
 import { TfiGallery } from "react-icons/tfi";
 import styles from "../styles/styles";
 const ENDPOINT = process.env.ENDPOINT;
-const socketId = socketIO("https://tradex-socket.onrender.com", {
-  autoConnect: true,
-  transports: ["websocket"],
-  reconnection: true,
-  reconnectionAttempts: Infinity,
-  reconnectionDelay: 1000,
-  reconnectionDelayMax: 5000,
-  pingInterval: 10000,
-  pingTimeout: 10000,
-});
 
 const UserInbox = () => {
-  const { user,loading } = useSelector((state) => state.user);
+  const { user, loading } = useSelector((state) => state.user);
   const [conversations, setConversations] = useState([]);
   const [arrivalMessage, setArrivalMessage] = useState(null);
   const [currentChat, setCurrentChat] = useState();
@@ -35,8 +25,23 @@ const UserInbox = () => {
   const [open, setOpen] = useState(false);
   const scrollRef = useRef(null);
 
+  const socketId = socketIO("http://localhost:4000", {
+    autoConnect: true,
+    transports: ["websocket"],
+    reconnection: true,
+    reconnectionAttempts: Infinity,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000,
+    pingInterval: 10000,
+    pingTimeout: 10000,
+  });
+
   useEffect(() => {
+    socketId.on("connect", () => {
+      console.log("Connected to server");
+    });
     socketId.on("getMessage", (data) => {
+      console.log("Connected to ", data);
       setArrivalMessage({
         sender: data.senderId,
         text: data.text,
@@ -74,6 +79,7 @@ const UserInbox = () => {
       const sellerId = user?._id;
       socketId.emit("addUser", sellerId);
       socketId.on("getUsers", (data) => {
+        console.log("Connected to serve", data);
         setOnlineUsers(data);
       });
     }
@@ -113,7 +119,8 @@ const UserInbox = () => {
     const receiverId = currentChat.members.find(
       (member) => member !== user?._id
     );
-
+    console.log("a user is connected@", receiverId);
+    console.log("a user is connected@", user?._id);
     socketId.emit("sendMessage", {
       senderId: user?._id,
       receiverId,
@@ -170,7 +177,6 @@ const UserInbox = () => {
   };
 
   const imageSendingHandler = async (e) => {
-
     const receiverId = currentChat.members.find(
       (member) => member !== user._id
     );
@@ -183,15 +189,12 @@ const UserInbox = () => {
 
     try {
       await axios
-        .post(
-          `${server}/message/create-new-message`,
-          {
-            images: e,
-            sender: user._id,
-            text: newMessage,
-            conversationId: currentChat._id,
-          }
-        )
+        .post(`${server}/message/create-new-message`, {
+          images: e,
+          sender: user._id,
+          text: newMessage,
+          conversationId: currentChat._id,
+        })
         .then((res) => {
           setImages();
           setMessages([...messages, res.data.message]);
@@ -272,7 +275,7 @@ const MessageList = ({
   userData,
   online,
   setActiveStatus,
-  loading
+  loading,
 }) => {
   const [active, setActive] = useState(0);
   const [user, setUser] = useState([]);
