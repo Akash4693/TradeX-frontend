@@ -84,7 +84,15 @@ const EventCard = ({ active, data }) => {
   };
 
   if (!isEventActive()) {
-    return <h2 className="text-center text-[20px] text-[#d55b45]">No curntevenster</h2>;
+    return (
+  <div className="w-full text-center mt-12">
+    <h2 className="text-[20px] text-[#d55b45] font-semibold">
+      This event has ended.
+    </h2>
+    <p className="text-gray-600 mt-2">Check back later for upcoming promotions and deals!</p>
+  </div>
+);
+
   }
 
   const addToCartHandler = (data) => {

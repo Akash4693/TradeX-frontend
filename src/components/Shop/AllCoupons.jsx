@@ -9,6 +9,7 @@ import styles from "../../styles/styles";
 import Loader from "../Layout/Loader";
 import { server } from "../../server";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const AllCoupons = () => {
   const [open, setOpen] = useState(false);
@@ -23,6 +24,7 @@ const AllCoupons = () => {
   const { products } = useSelector((state) => state.products);
 
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   useEffect(() => {
     setIsLoading(true);

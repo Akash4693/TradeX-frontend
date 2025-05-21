@@ -8,10 +8,13 @@ export const createEvent = (data) => async (dispatch) => {
       type: "eventCreateRequest",
     });
 
-    const { d } = await axios.post(`${server}/event/create-event`, data);
+    console.log("Sending event creation data:", data);
+
+    const { data: response } = await axios.post(`${server}/event/create-event`, data);
+    console.log("Response from server:", response);
     dispatch({
       type: "eventCreateSuccess",
-      payload: d.event,
+      payload: response.event,
     });
   } catch (error) {
     dispatch({

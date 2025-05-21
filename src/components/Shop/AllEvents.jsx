@@ -150,6 +150,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { deleteEvent, getAllEventsShop } from "../../redux/actions/event";
 import Loader from "../Layout/Loader";
+import { toast } from "react-toastify";
 
 const AllEvents = () => {
   const { events, isLoading } = useSelector((state) => state.events);
@@ -189,8 +190,10 @@ const AllEvents = () => {
     
       // Dispatch delete action
       await dispatch(deleteEvent(id));
+       toast.success("Event deleted successfully.");
     } catch (error) {
       console.error("Failed to delete event:", error);
+      toast.error("Failed to delete event. Please try again.");
     }
   }
 

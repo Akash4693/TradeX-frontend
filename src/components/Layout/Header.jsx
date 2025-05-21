@@ -51,7 +51,7 @@ const Header = ({ activeHeading }) => {
     }
   });
 
-  
+  console.log("isSeller", isSeller);
 
   return (
     <>

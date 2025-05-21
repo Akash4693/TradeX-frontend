@@ -36,6 +36,7 @@ const UserInbox = () => {
     pingTimeout: 10000,
   });
 
+  console.log("User", user)
   useEffect(() => {
     socketId.on("connect", () => {
       console.log("Connected to server");
@@ -219,6 +220,9 @@ const UserInbox = () => {
     scrollRef.current?.scrollIntoView({ beahaviour: "smooth" });
   }, [messages]);
 
+
+  console.log("user:", user.avatar.url)
+
   return (
     <div className="w-full">
       {!open && (
@@ -291,13 +295,20 @@ const MessageList = ({
     const getUser = async () => {
       try {
         const res = await axios.get(`${server}/shop/get-shop-info/${userId}`);
+        console.log("API response:", res.data)
         setUser(res.data.shop);
       } catch (error) {
-        console.log(error);
+        console.log("Error fetching user:", error)
       }
     };
     getUser();
   }, [me, data]);
+
+   useEffect(() => {
+    console.log("Fetched user data:", user);
+  }, [user]);
+
+  
 
   return (
     <div
