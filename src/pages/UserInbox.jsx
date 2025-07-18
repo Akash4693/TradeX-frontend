@@ -25,7 +25,9 @@ const UserInbox = () => {
   const [open, setOpen] = useState(false);
   const scrollRef = useRef(null);
 
-  const socketId = socketIO("http://localhost:4000", {
+  const socketServerUrl = process.env.REACT_APP_ENDPOINT || "http://localhost:4000";
+
+  const socketId = socketIO(socketServerUrl, {
     autoConnect: true,
     transports: ["websocket"],
     reconnection: true,

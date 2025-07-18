@@ -48,31 +48,41 @@ const AllCoupons = () => {
     window.location.reload();
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    await axios
-      .post(
-        `${server}/coupon/create-coupon-code`,
-        {
-          name,
-          minAmount,
-          maxAmount,
-          selectedProducts,
-          value,
-          shopId: seller._id,
-        },
-        { withCredentials: true }
-      )
-      .then((res) => {
-       toast.success("Coupon code created successfully!");
-       setOpen(false);
-       window.location.reload();
-      })
-      .catch((error) => {
-        toast.error(error.response.data.message);
-      });
-  };
+  try {
+    await axios.post(
+      `${server}/coupon/create-coupon-code`,
+      {
+        name,
+        minAmount,
+        maxAmount,
+        selectedProducts,
+        value,
+        shopId: seller._id,
+      },
+      { withCredentials: true }
+    );
+
+    toast.success("Coupon code created successfully!");
+    setOpen(false);
+    window.location.reload();
+  } catch (error) {
+    const message = error.response?.data?.message;
+
+    if (message === "Please login to continue") {
+      toast.error(message);
+      setOpen(false); // Close the modal before navigating
+      setTimeout(() => {
+        window.location.href = "/shop-login";
+      }, 1500);
+    } else {
+      toast.error(message || "Something went wrong");
+    }
+  }
+};
+
 
   const columns = [
     { field: "id", headerName: "Id", minWidth: 150, flex: 0.7 },
@@ -173,7 +183,7 @@ const AllCoupons = () => {
                   <br />
                   <div>
                     <label className="pb-2">
-                      Discount Percentenge{" "}
+                      Discount Percentage{" "}
                       <span className="text-red-500">*</span>
                     </label>
                     <input
