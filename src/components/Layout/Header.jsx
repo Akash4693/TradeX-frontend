@@ -1,12 +1,15 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import styles from "../../styles/styles";
 import { categoriesData, productData } from "../../static/data";
 import {
+  AiOutlineClose,
   AiOutlineHeart,
   AiOutlineSearch,
   AiOutlineShoppingCart,
 } from "react-icons/ai";
+import { debounce } from "lodash";
+
 import { IoIosArrowDown, IoIosArrowForward } from "react-icons/io";
 import { BiMenuAltLeft } from "react-icons/bi";
 import { CgProfile } from "react-icons/cg";
@@ -16,6 +19,7 @@ import { useSelector } from "react-redux";
 import Cart from "../cart/Cart";
 import Wishlist from "../Wishlist/Wishlist";
 import { RxCross1 } from "react-icons/rx";
+import { Button } from "@material-ui/core";
 
 const Header = ({ activeHeading }) => {
   const { isAuthenticated, user } = useSelector((state) => state.user);
@@ -23,25 +27,40 @@ const Header = ({ activeHeading }) => {
   const { wishlist } = useSelector((state) => state.wishlist);
   const { cart } = useSelector((state) => state.cart);
   const { allProducts } = useSelector((state) => state.products);
+  //const [search, setSearch] = useState("");
+  //const [isSearching, setIsSearching] = useState(false);
+ // const saveTimerRef = useRef();
   const [searchTerm, setSearchTerm] = useState("");
-  const [searchData, setSearchData] = useState(null);
+  const [searchData, setSearchData] = useState([]);
   const [active, setActive] = useState(false);
   const [dropDown, setDropDown] = useState(false);
   const [openCart, setOpenCart] = useState(false);
   const [openWishlist, setOpenWishlist] = useState(false);
   const [open, setOpen] = useState(false);
 
-  const handleSearchChange = (e) => {
-    const term = e.target.value;
-    setSearchTerm(term);
+ const debouncedSearch = useMemo(
+  () =>
+    debounce((term) => {
+      const filteredProducts =
+        allProducts.filter((product) =>
+          product.name.toLowerCase().includes(term.toLowerCase())
+        );
+      setSearchData(filteredProducts);
+    }, 500),
+  [allProducts]
+);
 
-    const filteredProducts =
-      allProducts &&
-      allProducts.filter((product) =>
-        product.name.toLowerCase().includes(term.toLowerCase())
-      );
-    setSearchData(filteredProducts);
-  };
+const handleSearchChange = (e) => {
+  const term = e.target.value;
+  setSearchTerm(term);
+  //setIsSearching(true);
+  debouncedSearch(term);
+};
+
+const handleClearSearch = () => {
+  setSearchTerm("");
+  setSearchData([]);
+}
 
   window.addEventListener("scroll", () => {
     if (window.scrollY > 70) {
@@ -51,7 +70,26 @@ const Header = ({ activeHeading }) => {
     }
   });
 
+  /*   useEffect(() => {
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+    }
+
+    saveTimerRef.current = setTimeout(() => {
+      handleSearchChange(search);
+    }, 500); // Reduced debounce time for better UX
+
+    return () => {
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+      }
+    };
+  }, [search]);  */
+
+
   console.log("isSeller", isSeller);
+
+ 
 
   return (
     <>
@@ -66,7 +104,7 @@ const Header = ({ activeHeading }) => {
             </Link>
           </div>
           {/* search box */}
-          <div className="w-[50%] relative">
+          <div className="w-[50%] relative" onClick={() => setSearchData([])}>
             <input
               type="text"
               placeholder="Search Product..."
@@ -74,17 +112,25 @@ const Header = ({ activeHeading }) => {
               onChange={handleSearchChange}
               className="h-[40px] w-full px-2 border-[#3957db] border-[2px] rounded-md"
             />
+            {searchData.length > 0 ? (
+              <AiOutlineClose 
+                size={25}
+                className="absolute right-2 top-2 cursor-pointer"
+                onClick={handleClearSearch}
+              />
+            ) : (
             <AiOutlineSearch
               size={30}
               className="absolute right-2 top-1.5 cursor-pointer"
             />
+            )}
             {searchData && searchData.length !== 0 ? (
-              <div className="absolute min-h-[30vh] bg-slate-50 shadow-sm-2 z-[9] p-4">
+              <div className="absolute w-full bg-slate-50 shadow-sm-2 z-[9] p-4">
                 {searchData &&
                   searchData.map((i, index) => {
                     return (
                       <Link to={`/product/${i._id}`}>
-                        <div className="w-full flex items-start-py-3">
+                        <div className="w-full flex items-start py-3 hover:bg-gray-200">
                           <img
                             src={`${i.images[0]?.url}`}
                             alt=""
@@ -118,6 +164,7 @@ const Header = ({ activeHeading }) => {
           className={`${styles.section} relative ${styles.noramlFlex} justify-between`}
         >
           {/* categories */}
+          
           <div onClick={() => setDropDown(!dropDown)}>
             <div className="relative h-[60px] mt-[10px] w-[270px] hidden 1000px:block">
               <BiMenuAltLeft size={30} className="absolute top-3 left-2" />
@@ -158,6 +205,7 @@ const Header = ({ activeHeading }) => {
             </div>
 
             <div className={`${styles.noramlFlex}`}>
+              
               <div
                 className="relative cursor-pointer mr-[15px]"
                 onClick={() => setOpenCart(true)}
@@ -226,6 +274,11 @@ const Header = ({ activeHeading }) => {
             </Link>
           </div>
           <div>
+            <AiOutlineSearch
+              size={30}
+              className="absolute right-16 top-2.5 cursor-pointer"
+            />
+
             <div
               className="relative mr-[20px]"
               onClick={() => setOpenCart(true)}
@@ -276,19 +329,21 @@ const Header = ({ activeHeading }) => {
                   value={searchTerm}
                   onChange={handleSearchChange}
                 />
+                
                 {searchData && (
+            
                   <div className="absolute bg-[#fff] z-10 shadow w-full left-0 p-3">
                     {searchData.map((i) => {
                       const d = i.name;
 
-                      const Product_name = d.replace(/\s+/g, "-");
+                      //const Product_name = d.replace(/\s+/g, "-");
                       return (
-                        <Link to={`/product/${Product_name}`}>
+                        <Link to={`/product/${i._id}`}>
                           <div className="flex items-center">
                             <img
-                              src={i.image_Url[0]?.url}
+                              src={i.images[0]?.url}
                               alt=""
-                              className="w-[50px] mr-2"
+                              className="w-20 h-20 mr-2 mb-2 rounded-sm"
                             />
                             <h5>{i.name}</h5>
                           </div>
@@ -311,14 +366,14 @@ const Header = ({ activeHeading }) => {
               <br />
               <br />
 
-              <div className="flex w-full justify-center">
+              <div className="flex w-full justify-center gap-3 mt-6">
                 {isAuthenticated ? (
                   <div>
                     <Link to="/profile">
                       <img
                         src={`${user.avatar?.url}`}
                         alt=""
-                        className="w-[60px] h-[60px] rounded-full border-[3px] border-[#0eae88]"
+                        className="w-14 h-14 rounded-full border-4 border-[#0eae88] shadow-md hover:scale-105 transition-transform duration-200"
                       />
                     </Link>
                   </div>
@@ -326,13 +381,13 @@ const Header = ({ activeHeading }) => {
                   <>
                     <Link
                       to="/login"
-                      className="text-[18px] pr-[10px] text-[#000000b7]"
+                      className="px-5 py-2 text-white bg-[#3957db] hover:bg-[#2f47b8] rounded-lg text-sm font-semibold shadow-md transition-colors"
                     >
-                      Login /
+                      Login 
                     </Link>
                     <Link
                       to="/sign-up"
-                      className="text-[18px] text-[#000000b7]"
+                      className="px-5 py-2 text-white bg-[#3bc177] hover:bg-[#30a765] rounded-lg text-sm font-semibold shadow-md transition-colors"
                     >
                       Sign up
                     </Link>

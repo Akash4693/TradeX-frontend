@@ -9,6 +9,7 @@ const DropDown = ({ categoriesData, setDropDown }) => {
     setDropDown(false);
     window.location.reload();
   };
+  console.log("here");
   return (
     <div className="pb-4 w-[270px] bg-[#fff] absolute z-30 rounded-b-md shadow-sm">
       {categoriesData &&
