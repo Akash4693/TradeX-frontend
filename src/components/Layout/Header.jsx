@@ -29,38 +29,42 @@ const Header = ({ activeHeading }) => {
   const { allProducts } = useSelector((state) => state.products);
   //const [search, setSearch] = useState("");
   //const [isSearching, setIsSearching] = useState(false);
- // const saveTimerRef = useRef();
+  // const saveTimerRef = useRef();
   const [searchTerm, setSearchTerm] = useState("");
   const [searchData, setSearchData] = useState([]);
   const [active, setActive] = useState(false);
   const [dropDown, setDropDown] = useState(false);
   const [openCart, setOpenCart] = useState(false);
+  const [showResults, setShowResults] = useState(false);
   const [openWishlist, setOpenWishlist] = useState(false);
   const [open, setOpen] = useState(false);
 
- const debouncedSearch = useMemo(
-  () =>
-    debounce((term) => {
-      const filteredProducts =
-        allProducts.filter((product) =>
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((term) => {
+        if (!term || term.trim().length === 0) {
+          setSearchData([]);
+          return;
+        }
+        const filteredProducts = allProducts.filter((product) =>
           product.name.toLowerCase().includes(term.toLowerCase())
         );
-      setSearchData(filteredProducts);
-    }, 500),
-  [allProducts]
-);
+        setSearchData(filteredProducts);
+      }, 500),
+    [allProducts]
+  );
 
-const handleSearchChange = (e) => {
-  const term = e.target.value;
-  setSearchTerm(term);
-  //setIsSearching(true);
-  debouncedSearch(term);
-};
+  const handleSearchChange = (e) => {
+    const term = e.target.value;
+    setSearchTerm(term);
+    //setIsSearching(true);
+    debouncedSearch(term);
+  };
 
-const handleClearSearch = () => {
-  setSearchTerm("");
-  setSearchData([]);
-}
+  const handleClearSearch = () => {
+    setSearchTerm("");
+    setSearchData([]);
+  };
 
   window.addEventListener("scroll", () => {
     if (window.scrollY > 70) {
@@ -86,10 +90,7 @@ const handleClearSearch = () => {
     };
   }, [search]);  */
 
-
   console.log("isSeller", isSeller);
-
- 
 
   return (
     <>
@@ -113,16 +114,16 @@ const handleClearSearch = () => {
               className="h-[40px] w-full px-2 border-[#3957db] border-[2px] rounded-md"
             />
             {searchData.length > 0 ? (
-              <AiOutlineClose 
+              <AiOutlineClose
                 size={25}
                 className="absolute right-2 top-2 cursor-pointer"
                 onClick={handleClearSearch}
               />
             ) : (
-            <AiOutlineSearch
-              size={30}
-              className="absolute right-2 top-1.5 cursor-pointer"
-            />
+              <AiOutlineSearch
+                size={30}
+                className="absolute right-2 top-1.5 cursor-pointer"
+              />
             )}
             {searchData && searchData.length !== 0 ? (
               <div className="absolute w-full bg-slate-50 shadow-sm-2 z-[9] p-4">
@@ -164,7 +165,7 @@ const handleClearSearch = () => {
           className={`${styles.section} relative ${styles.noramlFlex} justify-between`}
         >
           {/* categories */}
-          
+
           <div onClick={() => setDropDown(!dropDown)}>
             <div className="relative h-[60px] mt-[10px] w-[270px] hidden 1000px:block">
               <BiMenuAltLeft size={30} className="absolute top-3 left-2" />
@@ -205,7 +206,6 @@ const handleClearSearch = () => {
             </div>
 
             <div className={`${styles.noramlFlex}`}>
-              
               <div
                 className="relative cursor-pointer mr-[15px]"
                 onClick={() => setOpenCart(true)}
@@ -260,31 +260,69 @@ const handleClearSearch = () => {
           <div>
             <BiMenuAltLeft
               size={40}
-              className="ml-4"
+              className="ml-4 mt-2"
               onClick={() => setOpen(true)}
             />
           </div>
-          <div>
-            <Link to="/">
-              <img
-                src="https://shopo.quomodothemes.website/assets/images/logo.svg"
-                alt=""
-                className="mt-3 cursor-pointer"
-              />
-            </Link>
-          </div>
-          <div>
-            <AiOutlineSearch
-              size={30}
-              className="absolute right-16 top-2.5 cursor-pointer"
-            />
 
+          <div
+            className="flex-1 mx-10 right-3 relative"
+            onClick={() => setSearchData([])}
+          >
+            <input
+              type="text"
+              placeholder="Search Product..."
+              className="mt-2 h-[36px] w-full px-2 border-[#3957db] border-[2px] rounded-md"
+              value={searchTerm}
+              onChange={handleSearchChange}
+            />
+            {searchData.length > 0 ? (
+              <AiOutlineClose
+                size={25}
+                className="absolute right-2 top-7 transform -translate-y-1/2 cursor-pointer"
+                onClick={handleClearSearch}
+              />
+            ) : (
+              <AiOutlineSearch
+                size={30}
+                className="absolute right-2 top-7 transform -translate-y-1/2 "
+              />
+            )}
+
+            {searchData && searchData.length > 0 ? (
+              <div className="absolute bg-white z-10 shadow-md w-full left-0 mt-1 rounded-md">
+                {searchData.map((i) => (
+                  <Link key={i._id} to={`/product/${i._id}`}>
+                    <div className="flex items-center p-2 hover:bg-gray-100 rounded-md">
+                      <img
+                        src={i.images[0]?.url}
+                        alt=""
+                        className="w-16 h-16 mr-3 rounded-sm"
+                      />
+                      <h5>{i.name}</h5>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ): null}
+          </div>
+
+          <div>
+            <div
+              className="absolute mr-[15px]"
+              onClick={() => setOpenWishlist(true) || setOpen(false)}
+            >
+              <AiOutlineHeart size={30} className="mt-2 -ml-10" />
+              <span className="absolute right-0 top-0 mr-2 rounded-full bg-[#3bc177] w-4 h-4 top right p-0 m-0 text-white font-mono text-[12px]  leading-tight text-center">
+                {wishlist && wishlist.length}
+              </span>
+            </div>
             <div
               className="relative mr-[20px]"
               onClick={() => setOpenCart(true)}
             >
-              <AiOutlineShoppingCart size={30} />
-              <span className="absolute right-0 top-0 rounded-full bg-[#3bc177] w-4 h-4 top right p-0 m-0 text-white font-mono text-[12px]  leading-tight text-center">
+              <AiOutlineShoppingCart size={30} className="mt-2" />
+              <span className="absolute right-0 top-0 -mt-2  rounded-full bg-[#3bc177] w-4 h-4 top right p-0 m-0 text-white font-mono text-[12px]  leading-tight text-center">
                 {cart && cart.length}
               </span>
             </div>
@@ -301,18 +339,10 @@ const handleClearSearch = () => {
           <div
             className={`fixed w-full bg-[#0000005f] z-20 h-full top-0 left-0`}
           >
-            <div className="fixed w-[70%] bg-[#fff] h-screen top-0 left-0 z-10 overflow-y-scroll">
+            <div className="fixed w-[70%] bg-[#fff] h-screen grid grid-rows-[auto_1fr_auto]">
               <div className="w-full justify-between flex pr-3">
-                <div>
-                  <div
-                    className="relative mr-[15px]"
-                    onClick={() => setOpenWishlist(true) || setOpen(false)}
-                  >
-                    <AiOutlineHeart size={30} className="mt-5 ml-3" />
-                    <span className="absolute right-0 top-0 rounded-full bg-[#3bc177] w-4 h-4 top right p-0 m-0 text-white font-mono text-[12px]  leading-tight text-center">
-                      {wishlist && wishlist.length}
-                    </span>
-                  </div>
+                 <div className="my-8 w-[92%] m-auto h-[40px relative]">
+                 <Navbar active={activeHeading} />
                 </div>
                 <RxCross1
                   size={30}
@@ -320,53 +350,21 @@ const handleClearSearch = () => {
                   onClick={() => setOpen(false)}
                 />
               </div>
+              
+              <div className="flex-1"></div>
 
-              <div className="my-8 w-[92%] m-auto h-[40px relative]">
-                <input
-                  type="search"
-                  placeholder="Search Product..."
-                  className="h-[40px] w-full px-2 border-[#3957db] border-[2px] rounded-md"
-                  value={searchTerm}
-                  onChange={handleSearchChange}
-                />
-                
-                {searchData && (
-            
-                  <div className="absolute bg-[#fff] z-10 shadow w-full left-0 p-3">
-                    {searchData.map((i) => {
-                      const d = i.name;
-
-                      //const Product_name = d.replace(/\s+/g, "-");
-                      return (
-                        <Link to={`/product/${i._id}`}>
-                          <div className="flex items-center">
-                            <img
-                              src={i.images[0]?.url}
-                              alt=""
-                              className="w-20 h-20 mr-2 mb-2 rounded-sm"
-                            />
-                            <h5>{i.name}</h5>
-                          </div>
-                        </Link>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              <Navbar active={activeHeading} />
-              <div className={`${styles.button} ml-4 !rounded-[4px]`}>
+              <div className="flex flex-col items-center gap-4 pb-12 sm:pb-16 md:pb-20">
+              <div className={`${styles.button} !rounded-[4px]`}>
                 <Link to="/shop-create">
                   <h1 className="text-[#fff] flex items-center">
                     Become Seller <IoIosArrowForward className="ml-1" />
                   </h1>
                 </Link>
               </div>
-              <br />
-              <br />
-              <br />
+             
+              
 
-              <div className="flex w-full justify-center gap-3 mt-6">
+              <div className="flex w-full justify-center gap-3">
                 {isAuthenticated ? (
                   <div>
                     <Link to="/profile">
@@ -383,7 +381,7 @@ const handleClearSearch = () => {
                       to="/login"
                       className="px-5 py-2 text-white bg-[#3957db] hover:bg-[#2f47b8] rounded-lg text-sm font-semibold shadow-md transition-colors"
                     >
-                      Login 
+                      Login
                     </Link>
                     <Link
                       to="/sign-up"
@@ -395,6 +393,7 @@ const handleClearSearch = () => {
                 )}
               </div>
             </div>
+          </div>
           </div>
         )}
       </div>
